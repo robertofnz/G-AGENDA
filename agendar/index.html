@@ -70,7 +70,7 @@ var SINT=["Não gela","Pinga água","Faz barulho","Cheiro ruim","Não liga","Des
 var HORAS=["08:00","09:00","10:00","11:00","13:00","14:00","15:00","16:00"];
 var WD=["dom","seg","ter","qua","qui","sex","sáb"];
 function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-var CFG={sv:{visita:{on:1,p:80,u:0},hig:{on:1,p:150,u:1},inst:{on:1,p:400,u:1},desi:{on:1,p:150,u:1},gas:{on:1,p:250,u:1},ele:{on:1,p:100,u:0},orc:{on:1,p:0,u:0},pre:{on:1,p:200,u:0},outro:{on:0,p:0,u:0}},dw:[1,2,3,4,5,6],hs:HORAS.slice(),tel:"",co:{},hr:{}};
+var CFG={sv:{visita:{on:1,p:80,u:0},hig:{on:1,p:150,u:1},inst:{on:1,p:400,u:1},desi:{on:1,p:150,u:1},gas:{on:1,p:250,u:1},ele:{on:1,p:100,u:0},orc:{on:1,p:0,u:0},pre:{on:1,p:200,u:0},outro:{on:0,p:0,u:0}},dw:[1,2,3,4,5,6],hs:HORAS.slice(),tel:"",co:{},hr:{},ex:{}};
 [0,1,2,3,4,5,6].forEach(function(d){CFG.hr[d]=d===6?["08:00","12:00"]:["08:00","17:00"]});
 var CATS={ar:{n:"Ar-condicionado",e:"❄️",s:["visita","hig","inst","desi","gas","orc","pre","outro"]},ele:{n:"Elétrica",e:"⚡",s:["visita","ele","orc","pre","outro"]},mq:{n:"Máquina de lavar",e:"🧺",s:["visita","orc","outro"]},gel:{n:"Geladeira",e:"🧊",s:["visita","gas","orc","outro"]}};
 function brl(n){return "R$ "+Number(n||0).toLocaleString("pt-BR")}
@@ -82,13 +82,14 @@ function taken(k){return S.ocupados.indexOf(k)>-1}
 function dots(){var h='<div class="dots">';for(var i=0;i<5;i++)h+='<i class="'+(i<=S.step?"on":"")+'"></i>';return h+"</div>"}
 function bar(next,label,back){return '<div class="bar">'+(back?'<button class="btn ghost" data-act="back">Voltar</button>':"")+'<button class="btn" data-act="'+next+'"'+(S.saving?" disabled":"")+'>'+(S.saving?"Salvando...":label)+"</button></div>"}
 function so(id){var p=id.split("-"),r=CFG.hr[new Date(+p[0],+p[1]-1,+p[2]).getDay()];return r?HORAS.filter(function(t){return t>=r[0]&&t<r[1]}):[]}
+function diaAtende(id){if(CFG.ex&&CFG.ex[id]==="off")return false;if(CFG.ex&&CFG.ex[id]==="on")return true;var p=id.split("-");return CFG.dw.indexOf(new Date(+p[0],+p[1]-1,+p[2]).getDay())>-1}
 function free(id){return so(id).some(function(t){return !taken(id+" "+t)})}
 var MES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
 function cal(){var y=S.mo.y,mo=S.mo.m,cur=new Date(),first=new Date(y,mo,1).getDay(),n=new Date(y,mo+1,0).getDate(),today=iso(cur),diff=(y-cur.getFullYear())*12+mo-cur.getMonth(),
  h='<div class="cal"><div class="row" style="align-items:center;margin-top:10px"><button class="cn" data-act="mm" data-v="-1" aria-label="Mês anterior"'+(diff<=0?" disabled":"")+'>‹</button><b>'+MES[mo]+" de "+y+'</b><button class="cn" data-act="mm" data-v="1" aria-label="Próximo mês"'+(diff>=5?" disabled":"")+'>›</button></div><div class="cg">';
  WD.forEach(function(w){h+="<i>"+w+"</i>"});
  for(var i=0;i<first;i++)h+="<span></span>";
- for(var d=1;d<=n;d++){var id=y+"-"+String(mo+1).padStart(2,"0")+"-"+String(d).padStart(2,"0"),ok=id>today&&CFG.dw.indexOf(new Date(y,mo,d).getDay())>-1&&free(id);
+ for(var d=1;d<=n;d++){var id=y+"-"+String(mo+1).padStart(2,"0")+"-"+String(d).padStart(2,"0"),ok=id>today&&diaAtende(id)&&free(id);
   h+='<button class="cd'+(S.day===id?" on":"")+'" data-act="day" data-v="'+id+'"'+(ok?"":" disabled")+">"+d+"</button>"}
  return h+"</div></div>"}
 function wcf(b){var n=(CFG.tel||"").replace(/\D/g,""),L=["Olá! Acabei de agendar pelo app e quero confirmar:","","📅 "+dlabel(b.key.slice(0,10))+" às "+b.key.slice(11),"🔧 "+b.svc+(b.q?" · "+b.q+(b.q>1?" aparelhos":" aparelho"):"")+(b.ap?" ("+b.ap+")":""),"💰 "+(b.val?"Valor estimado: "+brl(b.val):"Valor a combinar"),"📍 "+b.addr,"👤 "+b.name];if(b.obs)L.push("📝 "+b.obs);return"https://wa.me/"+(n.length<=11?"55"+n:n)+"?text="+encodeURIComponent(L.join("\n"))}
@@ -129,7 +130,7 @@ function cli(){
   h+='</div><textarea data-f="obs">'+esc(S.obs)+'</textarea><label class="check"><input type="checkbox" data-f="cons"'+(S.cons?" checked":"")+'><span>Aceito receber lembretes de manutenção. Posso cancelar quando quiser.</span></label><div class="err">'+S.err+"</div>"+bar("book","Confirmar agendamento",1);
  }else{
   var b=S.last;h='<div class="big"><div class="ic">✓</div><h2 style="margin-top:0">Agendado!</h2><p>'+dlabel(b.key.slice(0,10))+" às "+b.key.slice(11)+"</p></div>"+
-  '<div class="card"><b>'+esc(b.svc)+(b.q?" · "+b.q+(b.q>1?" aparelhos":" aparelho"):"")+'</b><p>'+(b.val?"Valor estimado: "+brl(b.val):"Valor a combinar")+"</p><p>"+esc(b.addr)+"</p>"+(b.obs?"<p>"+esc(b.obs)+"</p>":"")+"</div>"+
+  '<div class="card"><b>'+(b.ap?esc(b.ap)+" · ":"")+esc(b.svc)+(b.q?" · "+b.q+(b.q>1?" aparelhos":" aparelho"):"")+'</b><p>'+(b.val?"Valor estimado: "+brl(b.val):"Valor a combinar")+"</p><p>"+esc(b.addr)+"</p>"+(b.obs?"<p>"+esc(b.obs)+"</p>":"")+"</div>"+
   '<a class="wbtn" href="'+wcf(b)+'" target="_blank" rel="noopener"><span class="wi">💬</span><span><b>Confirmar pelo WhatsApp</b><small>Envie os dados do agendamento para o técnico</small></span></a><p style="margin-top:12px;text-align:center">Esse horário agora está bloqueado para outros clientes.</p><div class="bar"><button class="btn" data-act="again">Novo agendamento</button></div>';
  }
  return h;
@@ -152,6 +153,7 @@ async function carregarTecnico(){
   if(TEC.config.dw)CFG.dw=TEC.config.dw;
   if(TEC.config.hr)CFG.hr=TEC.config.hr;
   if(TEC.config.co)CFG.co=TEC.config.co;
+  if(TEC.config.ex)CFG.ex=TEC.config.ex;
   if(TEC.config.serv)Object.assign(SERV,TEC.config.serv);
  }
  var ag=await sb.from("agendamentos").select("data_hora").eq("tecnico_id",TEC.id);
@@ -174,7 +176,7 @@ document.addEventListener("click",async function(e){
  if(a==="book"){
   if(!S.addr.trim()||!S.cont.trim()||S.tel.replace(/\D/g,"").length<10||(S.who==="Empresa"&&!S.emp.trim())){S.err="Preencha nome, WhatsApp com DDD e endereço"+(S.who==="Empresa"?", além do nome da empresa":"")+".";render();return}
   S.saving=1;render();
-  var sv=SERV[S.svc][0],ob=S.obs.trim();
+  var sv=SERV[S.svc][0],ob=S.obs.trim(),apNome=S.cat?CATS[S.cat].n:"";
   if(S.svc==="visita"&&S.sym.length)ob=("Sintomas: "+S.sym.join(", ")+(ob?". "+ob:""));
   var cf=CFG.sv[S.svc],q=cf.u?S.q:1,val=(!cf.ac&&cf.p)?cf.p*q:0,dh=S.day+" "+S.slot;
   var obsFinal=(S.who==="Empresa"?"Contato: "+S.cont.trim()+(S.cnpj.trim()?" | CNPJ: "+S.cnpj.trim():"")+(ob?" | "+ob:""):ob);
@@ -183,6 +185,7 @@ document.addEventListener("click",async function(e){
    data_hora:dh,
    cliente_nome:S.who==="Empresa"?S.emp.trim():S.cont.trim(),
    whatsapp:S.tel.trim(),
+   aparelho:apNome,
    servico:sv,
    who:S.who,
    endereco:S.addr.trim(),
@@ -193,7 +196,7 @@ document.addEventListener("click",async function(e){
   S.saving=0;
   if(ins.error){S.err="Erro ao confirmar: "+ins.error.message;render();return}
   S.ocupados.push(dh);
-  S.last={key:dh,name:S.who==="Empresa"?S.emp:S.cont,svc:sv,who:S.who,addr:S.addr,tel:S.tel,ct:S.cont,ap:S.cat?CATS[S.cat].n:"",obs:obsFinal,q:cf.u?q:0,val:val};
+  S.last={key:dh,name:S.who==="Empresa"?S.emp:S.cont,svc:sv,who:S.who,addr:S.addr,tel:S.tel,ct:S.cont,ap:apNome,obs:obsFinal,q:cf.u?q:0,val:val};
   go(5);return}
  if(a==="again"){reset();go(0);return}
  if(a==="cat"){S.cat=v;S.svc="";S.sym=[];go(2);return}
