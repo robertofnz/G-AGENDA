@@ -155,14 +155,14 @@ function sel(d,i,L,v){return'<select data-hr="'+d+":"+i+'">'+L.map(function(t){r
 function cfg3(){var cc=S.ccat,h=(S.ob?"":seg3()+cardLink()+MEUS())+'<h2 style="font-size:18px;margin-top:24px">Serviços e valores</h2><p>Escolha o aparelho para ver e editar os serviços dele.</p><div class="cats">';
  for(var z in CATS)if(CFG.co[z])h+='<button class="opt'+(cc===z?" on":"")+'" data-act="ccat" data-v="'+z+'"><span class="em">'+CATS[z].e+"</span><b>"+CATS[z].n+"</b></button>";
  h+="</div>";
- if(cc){var L=Object.keys(SERV).filter(function(k){var c=CFG.sv[k];return c.cat?c.cat===cc:CATS[cc].s.indexOf(k)>-1});
+ if(cc){var L=Object.keys(SERV).filter(function(k){var c=CFG.sv[k];if(!c)return false;return c.cat?c.cat===cc:CATS[cc].s.indexOf(k)>-1});
   h+='<div class="row" style="align-items:center;margin-top:18px"><b>Serviços de '+CATS[cc].n+'</b><button class="plus" data-act="nsv" aria-label="Novo serviço">+</button></div><p style="font-size:13px">Serviços que aparecem em mais de um aparelho (como a visita técnica) têm o mesmo valor em todos. Use o + para criar um serviço só deste aparelho.</p>';
   if(S.nsv!==null)h+='<div class="card"><label style="margin-top:0">Nome do novo serviço</label><input type="text" data-nsv="1" placeholder="Ex.: Troca de capacitor" value="'+esc(S.nsv)+'"><div class="mini"><button class="on" data-act="nsvok">Adicionar</button><button data-act="nsvx">Cancelar</button></div></div>';
   if(!L.length)h+='<p style="margin-top:10px">Nenhum serviço aqui. Use o + para criar.</p>';
-  L.forEach(function(k){var c=CFG.sv[k];h+='<div class="card"><div class="row" style="align-items:center"><b>'+esc(SERV[k][0])+'</b><div style="display:flex;gap:8px"><button class="chip'+(c.on?" on":"")+'" data-act="svon" data-v="'+k+'">'+(c.on?"Ativo":"Inativo")+'</button><button class="chip del" data-act="svdq" data-v="'+k+'">Excluir</button></div></div>'+(S.sdel===k?'<div class="cx"><b>Excluir "'+esc(SERV[k][0])+'"?</b><p>Ele deixa de aparecer para os clientes em '+CATS[cc].n+'. Não dá para desfazer.</p><div class="mini"><button class="danger" data-act="svdel" data-v="'+k+'">Sim, excluir</button><button data-act="svdx">Cancelar</button></div></div>':"")+(c.on?'<div class="row" style="margin-top:10px;align-items:center"><div style="display:flex;gap:8px;align-items:center"><span>R$ <input type="text" class="pr" inputmode="numeric" data-pk="'+k+'" value="'+(c.ac?"":c.p)+'"'+(c.ac?" disabled":"")+'></span><button class="chip'+(c.ac?" on":"")+'" data-act="ac" data-v="'+k+'">A combinar</button></div><label class="check" style="margin:0"><input type="checkbox" data-uk="'+k+'"'+(c.u?" checked":"")+"><span>Por aparelho</span></label></div>"+'<p style="margin-top:10px;font-size:13px">Chamar o cliente de volta após:</p><div class="chips" style="margin-top:6px">'+RVO.map(function(o){return'<button class="chip'+(c.rv===o[0]?" on":"")+'" data-act="rv" data-k="'+k+'" data-v="'+o[0]+'">'+o[1]+"</button>"}).join("")+"</div>":"")+"</div>"})}
+  L.forEach(function(k){var c=CFG.sv[k];if(!c)return;h+='<div class="card"><div class="row" style="align-items:center"><b>'+esc(SERV[k][0])+'</b><div style="display:flex;gap:8px"><button class="chip'+(c.on?" on":"")+'" data-act="svon" data-v="'+k+'">'+(c.on?"Ativo":"Inativo")+'</button><button class="chip del" data-act="svdq" data-v="'+k+'">Excluir</button></div></div>'+(S.sdel===k?'<div class="cx"><b>Excluir "'+esc(SERV[k][0])+'"?</b><p>Ele deixa de aparecer para os clientes em '+CATS[cc].n+'. Não dá para desfazer.</p><div class="mini"><button class="danger" data-act="svdel" data-v="'+k+'">Sim, excluir</button><button data-act="svdx">Cancelar</button></div></div>':"")+(c.on?'<div class="row" style="margin-top:10px;align-items:center"><div style="display:flex;gap:8px;align-items:center"><span>R$ <input type="text" class="pr" inputmode="numeric" data-pk="'+k+'" value="'+(c.ac?"":c.p)+'"'+(c.ac?" disabled":"")+'></span><button class="chip'+(c.ac?" on":"")+'" data-act="ac" data-v="'+k+'">A combinar</button></div><label class="check" style="margin:0"><input type="checkbox" data-uk="'+k+'"'+(c.u?" checked":"")+"><span>Por aparelho</span></label></div>"+'<p style="margin-top:10px;font-size:13px">Chamar o cliente de volta após:</p><div class="chips" style="margin-top:6px">'+RVO.map(function(o){return'<button class="chip'+(c.rv===o[0]?" on":"")+'" data-act="rv" data-k="'+k+'" data-v="'+o[0]+'">'+o[1]+"</button>"}).join("")+"</div>":"")+"</div>"})}
  else h+='<p style="margin-top:12px">Toque em um aparelho acima para começar.</p>';
  if(S.ob)return h;h+='<h2 style="font-size:18px;margin-top:24px">Dias e horários de atendimento</h2><p>Escolha os dias e, em cada um, o horário de início e de fim.</p>';
- [1,2,3,4,5,6,0].forEach(function(d){var on=CFG.dw.indexOf(d)>-1,r=CFG.hr[d];h+='<div class="card"><div class="row" style="align-items:center"><b>'+DN[d]+'</b><button class="chip'+(on?" on":"")+'" data-act="dw" data-v="'+d+'">'+(on?"Atende":"Folga")+"</button></div>"+(on?'<div class="row" style="margin-top:10px;align-items:center;justify-content:flex-start;gap:8px"><span>Das</span>'+sel(d,0,HORAS,r[0])+"<span>até</span>"+sel(d,1,HE,r[1])+"</div>":"")+"</div>"});
+ [1,2,3,4,5,6,0].forEach(function(d){var on=CFG.dw.indexOf(d)>-1,r=CFG.hr[d]||["08:00","17:00"];h+='<div class="card"><div class="row" style="align-items:center"><b>'+DN[d]+'</b><button class="chip'+(on?" on":"")+'" data-act="dw" data-v="'+d+'">'+(on?"Atende":"Folga")+"</button></div>"+(on?'<div class="row" style="margin-top:10px;align-items:center;justify-content:flex-start;gap:8px"><span>Das</span>'+sel(d,0,HORAS,r[0])+"<span>até</span>"+sel(d,1,HE,r[1])+"</div>":"")+"</div>"});
  return h+'<div class="bar"><button class="btn" data-act="savecfg"'+(S.saving?" disabled":"")+'>'+(S.saving?"Salvando...":"Salvar alterações")+'</button></div>'}
 var RVO=[[0,"Não avisar"],[30,"30 dias"],[90,"3 meses"],[180,"6 meses"],[240,"8 meses"],[365,"1 ano"]],RV={hig:180,gas:365};for(var k0 in CFG.sv)CFG.sv[k0].rv=RV[k0]||0;
 function rvl(d){for(var i=0;i<RVO.length;i++)if(RVO[i][0]===d)return RVO[i][1];return d+" dias"}
@@ -176,14 +176,16 @@ function rtp(b){var x=S.rt;if(!x||x.id!==b.id)return"";
  h+='<label>Motivo do retorno</label><div class="chips" style="margin:0 0 8px">';
  ["Terminar o serviço","Levar peça","Voltar com material","Aguardando o cliente"].forEach(function(m){h+='<button class="chip" data-act="rtw" data-v="'+m+'">+ '+m+"</button>"});
  return h+'</div><textarea data-rt="why" placeholder="O que precisa ser feito no retorno?">'+esc(x.why)+'</textarea><div class="err">'+x.err+'</div><div class="mini"><button class="on" data-act="rtok">Confirmar retorno</button><button data-act="rtx">Cancelar</button></div></div>'}
-function newM(){return{who:"Pessoal",name:"",tel:"",svc:"hig",q:1,val:null,day:"",slot:"",addr:"",obs:"",err:""}}
+function firstSvc(){for(var k in SERV)if(CFG.sv[k]&&CFG.sv[k].on)return k;return Object.keys(SERV)[0]||""}
+function newM(){return{who:"Pessoal",name:"",tel:"",svc:firstSvc(),q:1,val:null,day:"",slot:"",addr:"",obs:"",err:""}}
 function pv(s){var n=parseFloat(String(s).replace(",",".").replace(/[^0-9.]/g,""));return isNaN(n)?null:n}
 S.m=newM();
-function mf(){var m=S.m,h=seg3()+'<h2 style="font-size:18px">Agendar para um cliente</h2><p>Para quem combinou por telefone ou pessoalmente.</p>';
+function mf(){var m=S.m;if(!m.svc||!CFG.sv[m.svc]||!CFG.sv[m.svc].on)m.svc=firstSvc();
+ var h=seg3()+'<h2 style="font-size:18px">Agendar para um cliente</h2><p>Para quem combinou por telefone ou pessoalmente.</p>';
  h+='<label>Tipo de cliente</label><div class="chips" style="margin:0">';
  ["Pessoal","Empresa"].forEach(function(w){h+='<button class="chip'+(m.who===w?" on":"")+'" data-act="ms" data-k="who" data-v="'+w+'">'+w+"</button>"});
  h+='</div><label>'+(m.who==="Empresa"?"Nome da empresa":"Nome do cliente")+'</label><input type="text" data-m="name" value="'+esc(m.name)+'"><label>WhatsApp com DDD (opcional)</label><input type="text" data-m="tel" inputmode="tel" value="'+esc(m.tel)+'"><label>Serviço</label><div class="chips" style="margin:0">';
- for(var k in SERV){if(!CFG.sv[k].on)continue;h+='<button class="chip'+(m.svc===k?" on":"")+'" data-act="ms" data-k="svc" data-v="'+k+'">'+SERV[k][0]+"</button>"}
+ for(var k in SERV){if(!CFG.sv[k]||!CFG.sv[k].on)continue;h+='<button class="chip'+(m.svc===k?" on":"")+'" data-act="ms" data-k="svc" data-v="'+k+'">'+esc(SERV[k][0])+"</button>"}
  h+="</div>";
  var c=CFG.sv[m.svc];
  if(c&&c.u)h+='<div class="card row" style="align-items:center"><div><b>Quantos aparelhos?</b><p>Total: '+(c.p?brl(c.p*m.q):"a combinar")+'</p></div><div class="step"><button data-act="mq" data-v="-1" aria-label="Menos">−</button><b>'+m.q+'</b><button data-act="mq" data-v="1" aria-label="Mais">+</button></div></div>';
@@ -205,7 +207,7 @@ function dw(d){var t=new Date(),a=iso(t);t.setDate(t.getDate()+1);return d===a?"
 function bdg(d){var w=dw(d);return w==="hoje"?' <span class="pill hj">HOJE</span>':w==="amanhã"?' <span class="pill am">AMANHÃ</span>':""}
 function wr(b){var n=(b.tel||"").replace(/\D/g,""),p=(b.ct||b.name).split(" ")[0];return "https://wa.me/"+(n.length<=11?"55"+n:n)+"?text="+encodeURIComponent("Olá, "+p+"! Passando para lembrar que estarei aí "+dw(b.key.slice(0,10))+", às "+b.key.slice(11)+", para o serviço de "+b.svc.toLowerCase()+". Por favor, confirme se haverá alguém no local. Qualquer imprevisto, me avise por aqui.")}
 function MEUS(){var P=S.pf;return'<h2 style="font-size:18px;margin-top:16px">Meus dados</h2><label>Nome ou empresa</label><input type="text" data-pf="nome" value="'+esc(P.nome)+'"><label>Celular (WhatsApp)</label><input type="text" data-pf="cel" inputmode="tel" value="'+esc(P.cel)+'"><label>Endereço</label><input type="text" data-pf="end" value="'+esc(P.end)+'"><label>Serviços que atendo</label><div class="chips" style="margin:0">'+Object.keys(CATS).map(function(z){return'<button class="chip'+(CFG.co[z]?" on":"")+'" data-act="oc" data-v="'+z+'">'+CATS[z].e+" "+CATS[z].n+"</button>"}).join("")+"</div>"}
-function dias(){var h="";[1,2,3,4,5,6,0].forEach(function(d){var on=CFG.dw.indexOf(d)>-1,r=CFG.hr[d];h+='<div class="card"><div class="row" style="align-items:center"><b>'+DN[d]+'</b><button class="chip'+(on?" on":"")+'" data-act="dw" data-v="'+d+'">'+(on?"Atende":"Folga")+"</button></div>"+(on?'<div class="row" style="margin-top:10px;align-items:center;justify-content:flex-start;gap:8px"><span>Das</span>'+sel(d,0,HORAS,r[0])+"<span>até</span>"+sel(d,1,HE,r[1])+"</div>":"")+"</div>"});return h}
+function dias(){var h="";[1,2,3,4,5,6,0].forEach(function(d){var on=CFG.dw.indexOf(d)>-1,r=CFG.hr[d]||["08:00","17:00"];h+='<div class="card"><div class="row" style="align-items:center"><b>'+DN[d]+'</b><button class="chip'+(on?" on":"")+'" data-act="dw" data-v="'+d+'">'+(on?"Atende":"Folga")+"</button></div>"+(on?'<div class="row" style="margin-top:10px;align-items:center;justify-content:flex-start;gap:8px"><span>Das</span>'+sel(d,0,HORAS,r[0])+"<span>até</span>"+sel(d,1,HE,r[1])+"</div>":"")+"</div>"});return h}
 function obx(){var n=S.ob,P=S.pf,h='<div class="dots">';for(var i=1;i<=4;i++)h+='<i class="'+(i<=n?"on":"")+'"></i>';h+="</div>"+'<div class="note"><b>Você pode alterar tudo isso depois, em Ajustes.</b><br>E não precisa repetir esta configuração: ao entrar no app, ela já estará salva.</div>';
  if(n===1)h+='<h2>Vamos configurar o seu app</h2><p>Primeiro, seus dados. Eles aparecem para o cliente.</p><label>Seu nome ou nome da empresa</label><input type="text" data-pf="nome" value="'+esc(P.nome)+'"><label>Celular (WhatsApp)</label><input type="text" data-pf="cel" inputmode="tel" placeholder="(67) 99999-9999" value="'+esc(P.cel)+'"><label>Endereço (onde você mora ou da empresa)</label><input type="text" data-pf="end" placeholder="Rua, número, bairro, cidade" value="'+esc(P.end)+'">';
  else if(n===2){h+='<h2>O que você atende?</h2><p>Escolha um ou mais aparelhos.</p>';for(var z in CATS)h+='<button class="opt'+(CFG.co[z]?" on":"")+'" data-act="oc" data-v="'+z+'"><div class="row" style="justify-content:flex-start;align-items:center;gap:14px"><span class="em">'+CATS[z].e+"</span><b>"+CATS[z].n+"</b></div></button>"}
@@ -214,7 +216,7 @@ function obx(){var n=S.ob,P=S.pf,h='<div class="dots">';for(var i=1;i<=4;i++)h+=
  return h+'<div class="err">'+S.oe+'</div><div class="bar">'+(n>1?'<button class="btn ghost" data-act="ob" data-v="-1">Voltar</button>':"")+'<button class="btn" data-act="ob" data-v="1"'+(S.saving?" disabled":"")+'>'+(S.saving?"Salvando...":(n===4?"Concluir":"Avançar"))+"</button></div>"}
 function lgx(){return'<div style="text-align:center;margin-top:18px"><h2 style="margin-top:8px">Entrar no G.agenda</h2><p>Use o e-mail e a senha cadastrados.</p></div><label>E-mail</label><input type="email" data-lg="lu" autocomplete="username" placeholder="seu@email.com" value="'+esc(S.lu)+'"><label>Senha</label><input type="password" data-lg="lp" autocomplete="current-password" placeholder="••••••" value="'+esc(S.lp)+'"><div class="err">'+S.le+'</div><div class="bar"><button class="btn" data-act="login"'+(S.lgLoad?" disabled":"")+'>'+(S.lgLoad?"Verificando...":"Entrar")+'</button></div>'}
 function okx(){return'<div class="big okb"><div class="ic">✓</div><h2 style="margin-top:0">Tudo certo para usar o app!</h2><p>Sua conta está configurada, '+esc((S.pf.nome||"").trim().split(" ")[0])+'. Você não precisará fazer isso de novo.</p></div><div class="bar"><button class="btn" data-act="start">Abrir minha agenda</button></div>'}
-function seg3(){function t(v,l){return '<button style="flex:1" class="'+(S.tab===v?"on":"")+'" data-act="tab" data-v="'+v+'">'+l+"</button>"}return '<div class="seg seg4" style="margin-top:10px">'+t("agenda","Agenda")+t("lemb","Retornos ("+S.cl.filter(function(c){return c.iv-c.ago<=15}).length+")")+t("agendar","Agendar")+t("cfg","Ajustes")+"</div>"}
+function seg3(){function t(v,l){return '<button style="flex:1" class="'+(S.tab===v?"on":"")+'" data-act="tab" data-v="'+v+'">'+l+"</button>"}var totRet=S.bk.filter(function(b){return b.ret}).length+S.cl.filter(function(c){return c.iv-c.ago<=15}).length;return '<div class="seg seg4" style="margin-top:10px">'+t("agenda","Agenda")+t("lemb","Retornos ("+totRet+")")+t("agendar","Agendar")+t("cfg","Ajustes")+"</div>"}
 function render(){
  var sbEl=document.getElementById("sub");if(sbEl)sbEl.textContent=S.lg?"Acesso do técnico":S.ob?"Configuração inicial do técnico":"Olá, "+(S.pf.nome.trim().split(" ")[0]||"técnico")+"!";
  var bo=document.getElementById("btnOut");if(bo)bo.style.display=S.lg?"none":"block";
@@ -276,6 +278,7 @@ async function carregarPerfil(user){
    if(res.data.config.co)CFG.co=res.data.config.co;
    if(res.data.config.serv)Object.assign(SERV,res.data.config.serv);
   }
+  S.m=newM();
   await Promise.all([carregarAgenda(),carregarRetornos()]);
   S.ob=0;S.ok=0;
  }else{
@@ -347,10 +350,10 @@ document.addEventListener("click",async function(e){
  if(a==="ccat"){S.ccat=S.ccat===v?"":v;S.nsv=null;S.sdel=null;render();return}
  if(a==="svdq"){S.sdel=v;render();return}
  if(a==="svdx"){S.sdel=null;render();return}
- if(a==="svdel"){var cc=S.ccat;if(CFG.sv[v]&&CFG.sv[v].cat){delete SERV[v];delete CFG.sv[v]}else{CATS[cc].s=CATS[cc].s.filter(function(x){return x!==v});if(!Object.keys(CATS).some(function(z){return CATS[z].s.indexOf(v)>-1})){delete SERV[v];delete CFG.sv[v]}}if(S.m.svc===v)S.m.svc="";S.sdel=null;render();toast("Serviço excluído.");return}
+ if(a==="svdel"){var cc=S.ccat;if(CFG.sv[v]&&CFG.sv[v].cat){delete SERV[v];delete CFG.sv[v]}else{CATS[cc].s=CATS[cc].s.filter(function(x){return x!==v});if(!Object.keys(CATS).some(function(z){return CATS[z].s.indexOf(v)>-1})){delete SERV[v];delete CFG.sv[v]}}if(S.m.svc===v)S.m.svc=firstSvc();S.sdel=null;render();toast("Serviço excluído.");return}
  if(a==="served"){
   var sc=S.cl.filter(function(x){return x.id===+v})[0];if(!sc)return;
-  var s0=sk(sc.svc),novoIv=(s0&&CFG.sv[s0].rv)?CFG.sv[s0].rv:sc.iv,hoje=iso(new Date());
+  var s0=sk(sc.svc),novoIv=(s0&&CFG.sv[s0]&&CFG.sv[s0].rv)?CFG.sv[s0].rv:sc.iv,hoje=iso(new Date());
   var up=await sb.from("clientes_retorno").update({ultimo_atendimento:hoje,intervalo_dias:novoIv}).eq("id",sc.id);
   if(up.error){toast("Erro ao atualizar: "+up.error.message);return}
   sc.iv=novoIv;sc.ago=0;render();toast(sc.name+" atendido. Volta para o fim da lista: próximo retorno em "+rvl(sc.iv)+".");return}
@@ -405,14 +408,14 @@ document.addEventListener("click",async function(e){
   S.bk=S.bk.filter(function(x){return x.id!==cb.id});S.sel=S.sel.filter(function(x){return x!==cb.id});S.cx=null;render();toast("Visita cancelada. O horário ficou livre para outros clientes.");return}
  if(a==="svon"){CFG.sv[v].on=CFG.sv[v].on?0:1;render();return}
  if(a==="dw"){var n=+v,z=CFG.dw.indexOf(n);z>-1?CFG.dw.splice(z,1):CFG.dw.push(n);render();return}
- if(a==="tab"){S.tab=v;if(v==="agenda"||v==="lemb")await Promise.all([carregarAgenda(),carregarRetornos()]);render();return}
+ if(a==="tab"){S.tab=v;render();if(v==="agenda"||v==="lemb"){await Promise.all([carregarAgenda(),carregarRetornos()]);render();}return}
  if(a==="sel"){var id=+v,j=S.sel.indexOf(id);j>-1?S.sel.splice(j,1):S.sel.push(id);render();return}
  if(a==="done"){
   var id2=+v,bb=S.bk.filter(function(x){return x.id===id2})[0];if(!bb)return;
   var del=await sb.from("agendamentos").delete().eq("id",id2);
   if(del.error){toast("Erro ao concluir: "+del.error.message);return}
   S.bk=S.bk.filter(function(x){return x.id!==id2});S.sel=S.sel.filter(function(x){return x!==id2});
-  var sk0=sk(bb.svc),iv=sk0?CFG.sv[sk0].rv:0;
+  var sk0=sk(bb.svc),iv=(sk0&&CFG.sv[sk0])?CFG.sv[sk0].rv:0;
   if(iv){
    var insR=await sb.from("clientes_retorno").insert({
     tecnico_id:S.user.id,
