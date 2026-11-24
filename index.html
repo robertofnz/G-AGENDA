@@ -85,6 +85,9 @@ select{font:inherit;color:var(--ink);background:var(--surface);border:1.5px soli
 .cg{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}.cg i{font-style:normal;font-size:12px;color:var(--muted);text-align:center}
 .cd{aspect-ratio:1;border:1.5px solid var(--line);background:var(--surface);border-radius:10px;font-size:15px;cursor:pointer;padding:0}.cd.on{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}.cd:disabled{background:transparent;border-color:transparent;color:var(--muted);opacity:.45;cursor:not-allowed}.mini button:disabled{opacity:.45;cursor:not-allowed}
 .out{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:9px;padding:5px 10px;font-size:13px;cursor:pointer}
+.lbox{background:var(--surface);border:1.5px solid var(--brand);border-radius:14px;padding:14px;margin-top:14px}
+.lurl{font-size:13px;word-break:break-all;background:var(--soft);border-radius:9px;padding:8px 10px;margin-top:8px;color:var(--ink);user-select:all}
+.cpbtn{margin-top:10px;width:100%;border:0;border-radius:10px;padding:10px;background:var(--brand);color:var(--brand-ink);font-weight:700;font-size:14px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -99,6 +102,7 @@ select{font:inherit;color:var(--ink);background:var(--surface);border:1.5px soli
 <div id="toast"></div>
 <script>
 var sb = window.supabase.createClient("https://cxlqrbxfdbtksktedqci.supabase.co", "sb_publishable_sgHbNBACaj0iyRt8gzQQXA_7BeilCbW");
+var BASE_URL = "https://robertofnz.github.io/G-AGENDA/";
 var SERV={visita:["Visita técnica","Não sei qual é o problema"],hig:["Higienização","Limpeza completa do aparelho"],inst:["Instalação","Aparelho novo"],desi:["Desinstalação","Retirada do aparelho"],gas:["Recarga de gás","Aparelho não gela como antes"],ele:["Problema elétrico","Disjuntor, fiação, tomada"],orc:["Visita para orçamento","Avaliamos e passamos o valor"],pre:["Pré-instalação","Preparar o local antes do aparelho"],outro:["Outro serviço","Descreva nas observações"]};
 var SINT=["Não gela","Pinga água","Faz barulho","Cheiro ruim","Não liga","Desarma o disjuntor","Não sei dizer"];
 var HORAS=["08:00","09:00","10:00","11:00","13:00","14:00","15:00","16:00"];
@@ -109,7 +113,7 @@ var CFG={sv:{visita:{on:1,p:80,u:0},hig:{on:1,p:150,u:1},inst:{on:1,p:400,u:1},d
 function avail(){return DIAS.filter(function(d){return CFG.dw.indexOf(d.dow)>-1}).slice(0,6)}
 function brl(n){return "R$ "+Number(n||0).toLocaleString("pt-BR")}
 function dlabel(i){var p=i.split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);return WD[d.getDay()]+", "+d.getDate()+"/"+String(d.getMonth()+1).padStart(2,"0")}
-var S={role:"tec",lg:1,lgLoad:0,user:null,ok:0,lu:"",lp:"",le:"",ob:1,oe:"",pf:{nome:"",cel:"",end:""},nsv:null,ccat:"",sdel:null,cat:"",q:1,tel:"",cx:null,step:0,who:"",svc:"",sym:[],day:"",slot:"",addr:"",obs:"",emp:"",cnpj:"",cont:"",cons:true,err:"",tab:"agenda",sel:[],last:null,
+var S={role:"tec",lg:1,lgLoad:0,user:null,slug:"",saving:0,ok:0,lu:"",lp:"",le:"",ob:1,oe:"",pf:{nome:"",cel:"",end:""},nsv:null,ccat:"",sdel:null,cat:"",q:1,tel:"",cx:null,step:0,who:"",svc:"",sym:[],day:"",slot:"",addr:"",obs:"",emp:"",cnpj:"",cont:"",cons:true,err:"",tab:"agenda",sel:[],last:null,
 bk:[{id:1,key:DIAS[0].iso+" 08:00",name:"Carlos Mendes",tel:"67999990001",svc:"Higienização",who:"Pessoal",addr:"Rua 14 de Julho, 1200, Centro, Campo Grande MS",obs:"Moro em apartamento, bloco B"},
 {id:2,key:DIAS[0].iso+" 10:00",name:"Padaria Estrela",tel:"67999990002",ct:"Rita",svc:"Instalação",who:"Empresa",addr:"Av. Afonso Pena, 3400, Campo Grande MS",obs:"Falar com a Dona Rita. Abre às 6h."},
 {id:3,key:DIAS[1].iso+" 09:00",name:"Fernanda Lima",tel:"67999990003",svc:"Recarga de gás",who:"Pessoal",addr:"Rua Pedro Celestino, 850, Campo Grande MS",obs:"Moro em casa"},{id:4,key:iso(new Date())+" 14:00",name:"Clínica Vida",tel:"67999990004",ct:"Marta",svc:"Higienização",who:"Empresa",addr:"Rua Rio Grande do Sul, 410, Campo Grande MS",obs:"Entrar pela recepção",q:3,val:450}],
@@ -117,6 +121,8 @@ cl:[{id:1,name:"Maria Souza",svc:"Higienização",ago:182,iv:180},{id:2,name:"Pa
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function taken(k){return S.bk.some(function(b){return b.key===k})}
 function toast(t){var e=document.getElementById("toast");e.innerHTML='<div class="toast">'+esc(t)+"</div>";setTimeout(function(){e.innerHTML=""},2800)}
+function meuLink(){return S.slug?BASE_URL+"?t="+encodeURIComponent(S.slug):""}
+function cardLink(){var u=meuLink();if(!u)return"";return'<div class="lbox"><b>Seu link de agendamento</b><p style="font-size:13px;margin-top:2px">Copie e envie para seus clientes agendarem direto com você.</p><div class="lurl">'+esc(u)+'</div><button class="cpbtn" data-act="cplink">Copiar link</button></div>'}
 function dots(){var h='<div class="dots">';for(var i=0;i<5;i++)h+='<i class="'+(i<=S.step?"on":"")+'"></i>';return h+"</div>"}
 function bar(next,label,back){return '<div class="bar">'+(back?'<button class="btn ghost" data-act="back">Voltar</button>':"")+'<button class="btn" data-act="'+next+'">'+label+"</button></div>"}
 function cli(){
@@ -175,8 +181,9 @@ function tec(){if(S.tab==="agendar")return mf();if(S.tab==="cfg")return cfg3();
   var R=S.bk.filter(function(b){return b.ret}).sort(function(x,y){return x.key<y.key?-1:1});
   if(R.length){h+='<div class="dh">Retornos marcados</div>';R.forEach(function(b){h+='<div class="card"><div class="row"><div><b>'+dlabel(b.key.slice(0,10))+" às "+b.key.slice(11)+"</b><p>"+esc(b.name)+" · "+esc(b.svc)+'</p></div><span class="tag">Retorno</span></div>'+(b.rn?'<p style="margin-top:6px">Motivo: '+esc(b.rn)+"</p>":"")+'<p style="margin-top:4px;font-size:13px">Você será lembrado na véspera.</p></div>'});h+='<div class="dh">Clientes para chamar de volta</div>'}
   h+='<p style="margin-top:12px">Clientes que já podem voltar. O app avisa você, e basta tocar para enviar.</p>';
+  var lk=meuLink()||"(link do técnico)";
   S.cl.slice().sort(function(a,b){return(a.iv-a.ago)-(b.iv-b.ago)}).forEach(function(c){var r=c.iv-c.ago;
-   var msg="Olá, "+c.name.split(" ")[0]+"! Já faz um tempo desde o último serviço ("+c.svc.toLowerCase()+"). Quer agendar o próximo? Escolha o dia e horário aqui: (link do técnico)";
+   var msg="Olá, "+c.name.split(" ")[0]+"! Já faz um tempo desde o último serviço ("+c.svc.toLowerCase()+"). Quer agendar o próximo? Escolha o dia e horário aqui: "+lk;
    h+='<div class="card"><div class="row"><div><b>'+esc(c.name)+"</b> <span class=\"sm\">"+esc(c.svc)+" · atendido "+(c.ago?"há "+c.ago+" dias":"hoje")+'</span></div><span class="'+(r<=0?"late":r<=15?"late":"ok")+'">'+(r<=0?"Vencido":"em "+r+" dias")+'</span></div><div class="mini"><a href="https://wa.me/?text='+encodeURIComponent(msg)+'" target="_blank" rel="noopener">Lembrar pelo WhatsApp</a><button class="on" data-act="served" data-v="'+c.id+'">↻ Reatendido</button><button data-act="snooze" data-v="'+c.id+'">Adiar 30 dias</button><button class="'+(c.note?"has":"")+'" data-act="nt" data-v="c'+c.id+'">'+(c.note?"Anotação ✓":"Anotações")+'</button></div>'+notep("c"+c.id,c)+'</div>'});
  }
  return h;
@@ -187,13 +194,7 @@ var DN=["domingo","segunda","terça","quarta","quinta","sexta","sábado"],HE=["1
 CFG.tel="";CFG.co={};CFG.hr={};[0,1,2,3,4,5,6].forEach(function(d){CFG.hr[d]=d===6?["08:00","12:00"]:["08:00","17:00"]});
 function so(id){var p=id.split("-"),r=CFG.hr[new Date(+p[0],+p[1]-1,+p[2]).getDay()];return r?HORAS.filter(function(t){return t>=r[0]&&t<r[1]}):[]}
 function sel(d,i,L,v){return'<select data-hr="'+d+":"+i+'">'+L.map(function(t){return"<option"+(t===v?" selected":"")+">"+t+"</option>"}).join("")+"</select>"}
-function cfg2(){var h=seg3()+'<div class="row" style="align-items:center;margin-top:14px"><h2 style="font-size:18px;margin:0">Serviços e valores</h2><button class="plus" data-act="nsv" aria-label="Novo serviço">+</button></div><p>Ative o que você faz e defina o preço. Use o + para criar um serviço seu.</p>';
- if(S.nsv!==null)h+='<div class="card"><label style="margin-top:0">Nome do novo serviço</label><input type="text" data-nsv="1" placeholder="Ex.: Troca de capacitor" value="'+esc(S.nsv)+'"><div class="mini"><button class="on" data-act="nsvok">Adicionar</button><button data-act="nsvx">Cancelar</button></div></div>';
- for(var k in SERV){var c=CFG.sv[k];h+='<div class="card"><div class="row"><b>'+esc(SERV[k][0])+'</b><button class="chip'+(c.on?" on":"")+'" data-act="svon" data-v="'+k+'">'+(c.on?"Ativo":"Inativo")+"</button></div>"+(c.on?'<div class="row" style="margin-top:10px;align-items:center"><span>R$ <input type="text" class="pr" inputmode="numeric" data-pk="'+k+'" value="'+c.p+'"></span><label class="check" style="margin:0"><input type="checkbox" data-uk="'+k+'"'+(c.u?" checked":"")+"><span>Por aparelho</span></label></div>"+'<p style="margin-top:10px;font-size:13px">Chamar o cliente de volta após:</p><div class="chips" style="margin-top:6px">'+RVO.map(function(o){return'<button class="chip'+(c.rv===o[0]?" on":"")+'" data-act="rv" data-k="'+k+'" data-v="'+o[0]+'">'+o[1]+"</button>"}).join("")+"</div>":"")+(c.cu?'<div class="mini"><button data-act="svdel" data-v="'+k+'">Remover serviço</button></div>':"")+"</div>"}
- h+='<h2 style="font-size:18px">Dias e horários de atendimento</h2><p>Escolha os dias e, em cada um, o horário de início e de fim.</p>';
- [1,2,3,4,5,6,0].forEach(function(d){var on=CFG.dw.indexOf(d)>-1,r=CFG.hr[d];h+='<div class="card"><div class="row" style="align-items:center"><b>'+DN[d]+'</b><button class="chip'+(on?" on":"")+'" data-act="dw" data-v="'+d+'">'+(on?"Atende":"Folga")+"</button></div>"+(on?'<div class="row" style="margin-top:10px;align-items:center;justify-content:flex-start;gap:8px"><span>Das</span>'+sel(d,0,HORAS,r[0])+"<span>até</span>"+sel(d,1,HE,r[1])+"</div>":"")+"</div>"});
- return h+'<p style="margin-top:12px">Essas escolhas valem na hora para a visão do cliente.</p>'}
-function cfg3(){var cc=S.ccat,h=(S.ob?"":seg3()+MEUS())+'<h2 style="font-size:18px;margin-top:24px">Serviços e valores</h2><p>Escolha o aparelho para ver e editar os serviços dele.</p><div class="cats">';
+function cfg3(){var cc=S.ccat,h=(S.ob?"":seg3()+cardLink()+MEUS())+'<h2 style="font-size:18px;margin-top:24px">Serviços e valores</h2><p>Escolha o aparelho para ver e editar os serviços dele.</p><div class="cats">';
  for(var z in CATS)if(CFG.co[z])h+='<button class="opt'+(cc===z?" on":"")+'" data-act="ccat" data-v="'+z+'"><span class="em">'+CATS[z].e+"</span><b>"+CATS[z].n+"</b></button>";
  h+="</div>";
  if(cc){var L=Object.keys(SERV).filter(function(k){var c=CFG.sv[k];return c.cat?c.cat===cc:CATS[cc].s.indexOf(k)>-1});
@@ -204,7 +205,7 @@ function cfg3(){var cc=S.ccat,h=(S.ob?"":seg3()+MEUS())+'<h2 style="font-size:18
  else h+='<p style="margin-top:12px">Toque em um aparelho acima para começar.</p>';
  if(S.ob)return h;h+='<h2 style="font-size:18px;margin-top:24px">Dias e horários de atendimento</h2><p>Escolha os dias e, em cada um, o horário de início e de fim.</p>';
  [1,2,3,4,5,6,0].forEach(function(d){var on=CFG.dw.indexOf(d)>-1,r=CFG.hr[d];h+='<div class="card"><div class="row" style="align-items:center"><b>'+DN[d]+'</b><button class="chip'+(on?" on":"")+'" data-act="dw" data-v="'+d+'">'+(on?"Atende":"Folga")+"</button></div>"+(on?'<div class="row" style="margin-top:10px;align-items:center;justify-content:flex-start;gap:8px"><span>Das</span>'+sel(d,0,HORAS,r[0])+"<span>até</span>"+sel(d,1,HE,r[1])+"</div>":"")+"</div>"});
- return h+'<p style="margin-top:12px">Essas escolhas valem na hora para a visão do cliente.</p>'}
+ return h+'<div class="bar"><button class="btn" data-act="savecfg"'+(S.saving?" disabled":"")+'>'+(S.saving?"Salvando...":"Salvar alterações")+'</button></div>'}
 var RVO=[[0,"Não avisar"],[30,"30 dias"],[90,"3 meses"],[180,"6 meses"],[240,"8 meses"],[365,"1 ano"]],RV={hig:180,gas:365};for(var k0 in CFG.sv)CFG.sv[k0].rv=RV[k0]||0;
 function rvl(d){for(var i=0;i<RVO.length;i++)if(RVO[i][0]===d)return RVO[i][1];return d+" dias"}
 function sk(n){for(var k in SERV)if(SERV[k][0]===n)return k;return""}
@@ -263,24 +264,72 @@ function obx(){var n=S.ob,P=S.pf,h='<div class="dots">';for(var i=1;i<=4;i++)h+=
  else if(n===2){h+='<h2>O que você atende?</h2><p>Escolha um ou mais aparelhos.</p>';for(var z in CATS)h+='<button class="opt'+(CFG.co[z]?" on":"")+'" data-act="oc" data-v="'+z+'"><div class="row" style="justify-content:flex-start;align-items:center;gap:14px"><span class="em">'+CATS[z].e+"</span><b>"+CATS[z].n+"</b></div></button>"}
  else if(n===3)h+='<h2>Quando você atende?</h2><p>Escolha os dias e o horário de início e de fim de cada um.</p>'+dias();
  else h+=cfg3();
- return h+'<div class="err">'+S.oe+'</div><div class="bar">'+(n>1?'<button class="btn ghost" data-act="ob" data-v="-1">Voltar</button>':"")+'<button class="btn" data-act="ob" data-v="1">'+(n===4?"Concluir":"Avançar")+"</button></div>"}
+ return h+'<div class="err">'+S.oe+'</div><div class="bar">'+(n>1?'<button class="btn ghost" data-act="ob" data-v="-1">Voltar</button>':"")+'<button class="btn" data-act="ob" data-v="1"'+(S.saving?" disabled":"")+'>'+(S.saving?"Salvando...":(n===4?"Concluir":"Avançar"))+"</button></div>"}
 function lgx(){return'<div style="text-align:center;margin-top:18px"><h2 style="margin-top:8px">Entrar no G.agenda</h2><p>Use o e-mail e a senha cadastrados.</p></div><label>E-mail</label><input type="email" data-lg="lu" autocomplete="username" placeholder="seu@email.com" value="'+esc(S.lu)+'"><label>Senha</label><input type="password" data-lg="lp" autocomplete="current-password" placeholder="••••••" value="'+esc(S.lp)+'"><div class="err">'+S.le+'</div><div class="bar"><button class="btn" data-act="login"'+(S.lgLoad?" disabled":"")+'>'+(S.lgLoad?"Verificando...":"Entrar")+'</button></div>'}
 function okx(){return'<div class="big okb"><div class="ic">✓</div><h2 style="margin-top:0">Tudo certo para usar o app!</h2><p>Sua conta está configurada, '+esc((S.pf.nome||"").trim().split(" ")[0])+'. Você não precisará fazer isso de novo.</p></div><div class="bar"><button class="btn" data-act="start">Abrir minha agenda</button></div>'}
 function seg3(){function t(v,l){return '<button style="flex:1" class="'+(S.tab===v?"on":"")+'" data-act="tab" data-v="'+v+'">'+l+"</button>"}return '<div class="seg seg4" style="margin-top:10px">'+t("agenda","Agenda")+t("lemb","Retornos ("+S.cl.filter(function(c){return c.iv-c.ago<=15}).length+")")+t("agendar","Agendar")+t("cfg","Ajustes")+"</div>"}
-function cfg(){var h=seg3()+'<h2 style="font-size:18px">Serviços e valores</h2><p>Ative o que você faz e defina o preço.</p>';
- for(var k in SERV){var c=CFG.sv[k];h+='<div class="card"><div class="row"><b>'+SERV[k][0]+'</b><button class="chip'+(c.on?" on":"")+'" data-act="svon" data-v="'+k+'">'+(c.on?"Ativo":"Inativo")+"</button></div>"+(c.on?'<div class="row" style="margin-top:10px;align-items:center"><span>R$ <input type="text" class="pr" inputmode="numeric" data-pk="'+k+'" value="'+c.p+'"></span><label class="check" style="margin:0"><input type="checkbox" data-uk="'+k+'"'+(c.u?" checked":"")+"><span>Por aparelho</span></label></div><p style=\"margin-top:10px;font-size:13px\">Chamar o cliente de volta após:</p><div class=\"chips\" style=\"margin-top:6px\">"+RVO.map(function(o){return'<button class="chip'+(c.rv===o[0]?" on":"")+'" data-act="rv" data-k="'+k+'" data-v="'+o[0]+'">'+o[1]+"</button>"}).join("")+"</div>":"")+"</div>"}
- h+='<h2 style="font-size:18px">Dias que você atende</h2><div class="chips">';
- [1,2,3,4,5,6,0].forEach(function(d){h+='<button class="chip'+(CFG.dw.indexOf(d)>-1?" on":"")+'" data-act="dw" data-v="'+d+'">'+WD[d]+"</button>"});
- h+='</div><h2 style="font-size:18px">Horários disponíveis</h2><div class="chips">';
- HORAS.forEach(function(t){h+='<button class="chip'+(CFG.hs.indexOf(t)>-1?" on":"")+'" data-act="hr" data-v="'+t+'">'+t+"</button>"});
- return h+'</div><p style="margin-top:12px">Essas escolhas valem na hora para a visão do cliente.</p>'}
 function render(){
- var sb=document.getElementById("sub");if(sb)sb.textContent=S.lg?"Acesso do técnico":S.ob?"Configuração inicial do técnico":"Olá, "+(S.pf.nome.trim().split(" ")[0]||"técnico")+"!";
+ var sbEl=document.getElementById("sub");if(sbEl)sbEl.textContent=S.lg?"Acesso do técnico":S.ob?"Configuração inicial do técnico":"Olá, "+(S.pf.nome.trim().split(" ")[0]||"técnico")+"!";
  var bo=document.getElementById("btnOut");if(bo)bo.style.display=S.lg?"none":"block";
  document.getElementById("app").innerHTML=S.lg?lgx():S.ok?okx():S.ob?obx():(S.role==="cli"?cli():tec());
 }
 function go(n){S.step=n;S.err="";render();window.scrollTo(0,0)}
 function reset(){S.q=1;S.cat="";S.tel="";S.step=0;S.who="";S.svc="";S.sym=[];S.day="";S.slot="";S.addr="";S.obs="";S.emp="";S.cnpj="";S.cont="";S.err=""}
+function gerarSlug(nome){
+ var base=String(nome||"tecnico").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+ return base||"tecnico";
+}
+async function carregarPerfil(user){
+ S.user=user;
+ var res=await sb.from("tecnicos").select("*").eq("id",user.id).maybeSingle();
+ if(res.data){
+  S.slug=res.data.slug;
+  S.pf={nome:res.data.nome||"",cel:res.data.whatsapp||"",end:res.data.endereco||""};
+  CFG.tel=res.data.whatsapp||"";
+  if(res.data.config){
+   if(res.data.config.sv)CFG.sv=res.data.config.sv;
+   if(res.data.config.dw)CFG.dw=res.data.config.dw;
+   if(res.data.config.hr)CFG.hr=res.data.config.hr;
+   if(res.data.config.co)CFG.co=res.data.config.co;
+   if(res.data.config.serv)Object.assign(SERV,res.data.config.serv);
+  }
+  S.ob=0;S.ok=0;
+ }else{
+  S.ob=1;S.ok=0;S.slug="";
+ }
+ S.lg=0;S.le="";S.lp="";
+ render();window.scrollTo(0,0);
+}
+async function salvarPerfil(concluindo){
+ if(!S.user)return false;
+ S.saving=1;render();
+ var slug=S.slug;
+ if(!slug){
+  var base=gerarSlug(S.pf.nome),tentativa=base,n=2;
+  while(true){
+   var chk=await sb.from("tecnicos").select("id").eq("slug",tentativa).maybeSingle();
+   if(!chk.data||chk.data.id===S.user.id){slug=tentativa;break}
+   tentativa=base+n;n++;
+  }
+ }
+ var payload={
+  id:S.user.id,
+  slug:slug,
+  nome:S.pf.nome.trim(),
+  whatsapp:S.pf.cel.trim(),
+  endereco:S.pf.end.trim(),
+  config:{sv:CFG.sv,dw:CFG.dw,hr:CFG.hr,co:CFG.co,serv:SERV}
+ };
+ var res=await sb.from("tecnicos").upsert(payload).select().single();
+ S.saving=0;
+ if(res.error){
+  if(concluindo)S.oe="Erro ao salvar dados: "+res.error.message;
+  else toast("Erro ao salvar: "+res.error.message);
+  render();return false;
+ }
+ S.slug=res.data.slug;
+ return true;
+}
 async function entrar(){
  var em=S.lu.trim(),pw=S.lp;
  if(!em||!pw){S.le="Digite seu e-mail e sua senha.";render();return}
@@ -291,16 +340,14 @@ async function entrar(){
   S.le="E-mail ou senha incorretos.";
   render();return;
  }
- S.user=res.data.user;
- S.lg=0;S.le="";S.lp="";
- render();window.scrollTo(0,0);
+ await carregarPerfil(res.data.user);
 }
 async function sair(){
  await sb.auth.signOut();
- S.user=null;S.lg=1;S.lp="";S.le="";
+ S.user=null;S.slug="";S.lg=1;S.ob=1;S.ok=0;S.lp="";S.le="";S.pf={nome:"",cel:"",end:""};
  render();window.scrollTo(0,0);
 }
-document.addEventListener("click",function(e){
+document.addEventListener("click",async function(e){
  var b=e.target.closest("[data-act]");if(!b)return;var a=b.dataset.act,v=b.dataset.v;
  if(a==="role"){S.role=v;render();window.scrollTo(0,0);return}
  if(a==="who"){S.who=v;go(1);return}
@@ -326,9 +373,11 @@ document.addEventListener("click",function(e){
  if(a==="nsvok"){var nn=(S.nsv||"").trim();if(!nn){toast("Escreva o nome do serviço.");return}var ck2="c"+S.nid++;SERV[ck2]=[nn,"Serviço personalizado"];CFG.sv[ck2]={on:1,p:0,u:0,rv:0,cu:1,cat:S.ccat};S.nsv=null;render();toast("Serviço adicionado. Defina o valor abaixo.");return}
  if(a==="login"){entrar();return}
  if(a==="logout"){sair();return}
+ if(a==="cplink"){var u=meuLink();if(!u)return;if(navigator.clipboard)navigator.clipboard.writeText(u);toast("Link copiado!");return}
+ if(a==="savecfg"){var ok=await salvarPerfil(false);render();if(ok)toast("Alterações salvas!");return}
  if(a==="start"){S.ok=0;render();window.scrollTo(0,0);return}
  if(a==="oc"){CFG.co[v]=CFG.co[v]?0:1;S.oe="";if(!CFG.co[S.ccat])S.ccat="";render();return}
- if(a==="ob"){var d2=+v,P=S.pf;if(d2>0){if(S.ob===1&&(!P.nome.trim()||P.cel.replace(/\D/g,"").length<10||!P.end.trim())){S.oe="Preencha nome, celular com DDD e endereço.";render();return}if(S.ob===2&&!Object.keys(CFG.co).some(function(z){return CFG.co[z]})){S.oe="Escolha pelo menos um aparelho.";render();return}if(S.ob===1)CFG.tel=P.cel;if(S.ob===4){S.ob=0;S.ok=1;S.tab="agenda";S.oe="";S.ccat="";render();window.scrollTo(0,0);return}}S.ob+=d2;S.oe="";S.ccat="";render();window.scrollTo(0,0);return}
+ if(a==="ob"){var d2=+v,P=S.pf;if(d2>0){if(S.ob===1&&(!P.nome.trim()||P.cel.replace(/\D/g,"").length<10||!P.end.trim())){S.oe="Preencha nome, celular com DDD e endereço.";render();return}if(S.ob===2&&!Object.keys(CFG.co).some(function(z){return CFG.co[z]})){S.oe="Escolha pelo menos um aparelho.";render();return}if(S.ob===1)CFG.tel=P.cel;if(S.ob===4){var salvou=await salvarPerfil(true);if(!salvou)return;S.ob=0;S.ok=1;S.tab="agenda";S.oe="";S.ccat="";render();window.scrollTo(0,0);return}}S.ob+=d2;S.oe="";S.ccat="";render();window.scrollTo(0,0);return}
  if(a==="ac"){var cs=CFG.sv[v];if(cs.ac){cs.ac=0;cs.p=cs.pp||0}else{cs.pp=cs.p;cs.p=0;cs.ac=1}render();return}
  if(a==="ccat"){S.ccat=S.ccat===v?"":v;S.nsv=null;S.sdel=null;render();return}
  if(a==="svdq"){S.sdel=v;render();return}
@@ -373,7 +422,7 @@ document.addEventListener("click",function(e){
 });
 document.addEventListener("input",function(e){var t=e.target.dataset;if(t.lg){S[t.lg]=e.target.value;return}if(t.pf){S.pf[t.pf]=e.target.value;if(t.pf==="cel")CFG.tel=e.target.value;return}if(t.tel){CFG.tel=e.target.value;return}if(t.hr){var q9=t.hr.split(":");CFG.hr[q9[0]][+q9[1]]=e.target.value;return}if(t.nsv){S.nsv=e.target.value;return}if(t.rt){S.rt[t.rt]=e.target.value;if(t.rt==="day"){S.rt.slot="";render()}return}if(t.ntk){var o=nobj(t.ntk);if(o)o.note=e.target.value;return}if(t.m){S.m[t.m]=e.target.value;return}if(t.pk){CFG.sv[t.pk].p=+e.target.value.replace(/\D/g,"")||0;return}if(t.uk){CFG.sv[t.uk].u=e.target.checked?1:0;return}var f=e.target.dataset.f;if(f)S[f]=e.target.type==="checkbox"?e.target.checked:e.target.value});
 document.addEventListener("keydown",function(e){if(e.key==="Enter"&&S.lg){entrar()}});
-sb.auth.getSession().then(function(r){if(r.data&&r.data.session){S.user=r.data.session.user;S.lg=0}render()});
+sb.auth.getSession().then(function(r){if(r.data&&r.data.session){carregarPerfil(r.data.session.user)}else{render()}});
 </script>
 </body>
 </html>
