@@ -108,7 +108,8 @@ var DIAS=[];(function(){var d=new Date();while(DIAS.length<14){d.setDate(d.getDa
 var CFG={sv:{visita:{on:1,p:80,u:0},hig:{on:1,p:150,u:1},inst:{on:1,p:400,u:1},desi:{on:1,p:150,u:1},gas:{on:1,p:250,u:1},ele:{on:1,p:100,u:0},orc:{on:1,p:0,u:0},pre:{on:1,p:200,u:0},outro:{on:0,p:0,u:0}},dw:[1,2,3,4,5,6],hs:HORAS.slice()};
 function brl(n){return "R$ "+Number(n||0).toLocaleString("pt-BR")}
 function dlabel(i){var p=i.split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);return WD[d.getDay()]+", "+d.getDate()+"/"+String(d.getMonth()+1).padStart(2,"0")}
-var S={lg:1,lgLoad:0,user:null,slug:"",saving:0,ok:0,lu:"",lp:"",le:"",ob:1,oe:"",pf:{nome:"",cel:"",end:""},nsv:null,ccat:"",sdel:null,cx:null,tab:"agenda",sel:[],bk:[],cl:[],nid:1};
+function diasDesde(dt){if(!dt)return 0;var p=String(dt).slice(0,10).split("-"),d=new Date(+p[0],+p[1]-1,+p[2]),h=new Date();h.setHours(0,0,0,0);return Math.max(0,Math.floor((h-d)/86400000))}
+var S={lg:1,lgLoad:0,user:null,slug:"",saving:0,ok:0,lu:"",lp:"",le:"",ob:1,oe:"",pf:{nome:"",cel:"",end:""},nsv:null,ccat:"",sdel:null,cx:null,tab:"agenda",sel:[],bk:[],cl:[]};
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
 function taken(k){return S.bk.some(function(b){return b.key===k})}
 function toast(t){var e=document.getElementById("toast");e.innerHTML='<div class="toast">'+esc(t)+"</div>";setTimeout(function(){e.innerHTML=""},2800)}
@@ -128,7 +129,7 @@ function tec(){if(S.tab==="agendar")return mf();if(S.tab==="cfg")return cfg3();
   L.forEach(function(b){var d=b.key.slice(0,10);if(d!==cur){cur=d;h+='<div class="dh">'+dlabel(d)+bdg(d)+"</div>"}
    var on=S.sel.indexOf(b.id)>-1;
    h+='<div class="card"><div class="row"><div><b>'+b.key.slice(11)+" · "+esc(b.svc)+(b.q>1?" · "+b.q+"x":"")+"</b><p>"+esc(b.name)+(b.val?" · "+brl(b.val):"")+'</p></div><span class="tags"><span class="tag g">'+esc(b.who||"Pessoal")+'</span>'+(b.ret?'<span class="tag">Retorno</span>':b.nw?'<span class="tag new">Novo</span>':"")+"</span></div><p style=\"margin-top:6px\">"+esc(b.addr)+"</p>"+(b.obs?'<p style="margin-top:4px">“'+esc(b.obs)+'”</p>':"")+
-   '<div class="mini"><a class="wa" href="'+wa(b)+'" target="_blank" rel="noopener">Conversar no WhatsApp</a><a class="rm" href="'+wr(b)+'" target="_blank" rel="noopener">Lembrar cliente</a><a href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(b.addr)+'" target="_blank" rel="noopener">Abrir no Maps</a><button class="'+(on?"on":"")+'" data-act="sel" data-v="'+b.id+'">'+(on?"✓ Na rota":"Adicionar à rota")+'</button><button data-act="done" data-v="'+b.id+'">Concluir</button><button data-act="rt" data-v="'+b.id+'">Voltar depois</button><button data-act="cx" data-v="'+b.id+'">Cancelar visita</button><button class="'+(b.note?"has":"")+'" data-act="nt" data-v="b'+b.id+'">'+(b.note?"Anotação ✓":"Anotações")+'</button></div>'+(b.hist?b.hist.map(function(t){return'<p class="nt">↩ '+esc(t)+"</p>"}).join(""):"")+notep("b"+b.id,b)+rtp(b)+cxp(b)+'</div>'});
+   '<div class="mini"><a class="wa" href="'+wa(b)+'" target="_blank" rel="noopener">Conversar no WhatsApp</a><a class="rm" href="'+wr(b)+'" target="_blank" rel="noopener">Lembrar cliente</a><a href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(b.addr)+'" target="_blank" rel="noopener">Abrir no Maps</a><button class="'+(on?"on":"")+'" data-act="sel" data-v="'+b.id+'">'+(on?"✓ Na rota":"Adicionar à rota")+'</button><button data-act="done" data-v="'+b.id+'">Concluir</button><button data-act="rt" data-v="'+b.id+'">Voltar depois</button><button data-act="cx" data-v="'+b.id+'">Cancelar visita</button><button class="'+(b.note?"has":"")+'" data-act="nt" data-v="b'+b.id+'">'+(b.note?"Anotação ✓":"Anotações")+'</button></div>'+(b.hist&&b.hist.length?b.hist.map(function(t){return'<p class="nt">↩ '+esc(t)+"</p>"}).join(""):"")+notep("b"+b.id,b)+rtp(b)+cxp(b)+'</div>'});
   if(S.sel.length){var dd={};S.bk.forEach(function(x){if(S.sel.indexOf(x.id)>-1)dd[x.key.slice(0,10)]=1});var mix=Object.keys(dd).length>1;h+='<div class="bar" style="align-items:center"><a class="btn" href="'+rota(S.sel)+'" target="_blank" rel="noopener">Criar rota com '+S.sel.length+(S.sel.length>1?" clientes":" cliente")+"</a>"+(mix?'<div class="rw" role="alert"><b>⚠️ Você criou uma rota com dias diferentes</b><span>Confira se quer atender todos juntos.</span></div>':"")+"</div>";}
  }else{
   var R=S.bk.filter(function(b){return b.ret}).sort(function(x,y){return x.key<y.key?-1:1});
@@ -138,8 +139,10 @@ function tec(){if(S.tab==="agendar")return mf();if(S.tab==="cfg")return cfg3();
    h+='<p style="margin-top:12px">Clientes que já podem voltar. O app avisa você, e basta tocar para enviar.</p>';
    var lk=meuLink()||"(link do técnico)";
    S.cl.slice().sort(function(a,b){return(a.iv-a.ago)-(b.iv-b.ago)}).forEach(function(c){var r=c.iv-c.ago;
+    var n=(c.tel||"").replace(/\D/g,"");
     var msg="Olá, "+c.name.split(" ")[0]+"! Já faz um tempo desde o último serviço ("+c.svc.toLowerCase()+"). Quer agendar o próximo? Escolha o dia e horário aqui: "+lk;
-    h+='<div class="card"><div class="row"><div><b>'+esc(c.name)+"</b> <span class=\"sm\">"+esc(c.svc)+" · atendido "+(c.ago?"há "+c.ago+" dias":"hoje")+'</span></div><span class="'+(r<=0?"late":r<=15?"late":"ok")+'">'+(r<=0?"Vencido":"em "+r+" dias")+'</span></div><div class="mini"><a href="https://wa.me/?text='+encodeURIComponent(msg)+'" target="_blank" rel="noopener">Lembrar pelo WhatsApp</a><button class="on" data-act="served" data-v="'+c.id+'">↻ Reatendido</button><button data-act="snooze" data-v="'+c.id+'">Adiar 30 dias</button><button class="'+(c.note?"has":"")+'" data-act="nt" data-v="c'+c.id+'">'+(c.note?"Anotação ✓":"Anotações")+'</button></div>'+notep("c"+c.id,c)+'</div>'});
+    var wurl="https://wa.me/"+(n?(n.length<=11?"55"+n:n):"")+"?text="+encodeURIComponent(msg);
+    h+='<div class="card"><div class="row"><div><b>'+esc(c.name)+"</b> <span class=\"sm\">"+esc(c.svc)+" · atendido "+(c.ago?"há "+c.ago+" dias":"hoje")+'</span></div><span class="'+(r<=0?"late":r<=15?"late":"ok")+'">'+(r<=0?"Vencido":"em "+r+" dias")+'</span></div><div class="mini"><a href="'+wurl+'" target="_blank" rel="noopener">Lembrar pelo WhatsApp</a><button class="on" data-act="served" data-v="'+c.id+'">↻ Reatendido</button><button data-act="snooze" data-v="'+c.id+'">Adiar 30 dias</button><button class="'+(c.note?"has":"")+'" data-act="nt" data-v="c'+c.id+'">'+(c.note?"Anotação ✓":"Anotações")+'</button></div>'+notep("c"+c.id,c)+'</div>'});
   }
  }
  return h;
@@ -166,7 +169,7 @@ function rvl(d){for(var i=0;i<RVO.length;i++)if(RVO[i][0]===d)return RVO[i][1];r
 function sk(n){for(var k in SERV)if(SERV[k][0]===n)return k;return""}
 function nobj(k){var id=+k.slice(1);return(k[0]==="b"?S.bk:S.cl).filter(function(x){return x.id===id})[0]}
 function notep(k,o){if(S.nt!==k)return o.note?'<p class="nt">📝 '+esc(o.note)+"</p>":"";
- return '<div class="cx"><b>Anotações do técnico</b><p>Só você vê. Ex.: levar escada maior, chave com o porteiro.</p><textarea data-ntk="'+k+'" placeholder="Escreva aqui...">'+esc(o.note||"")+'</textarea><div class="mini"><button data-act="nt" data-v="'+k+'">Salvar e fechar</button></div></div>'}
+ return '<div class="cx"><b>Anotações do técnico</b><p>Só você vê. Ex.: levar escada maior, chave com o porteiro.</p><textarea data-ntk="'+k+'" placeholder="Escreva aqui...">'+esc(o.note||"")+'</textarea><div class="mini"><button data-act="ntsave" data-v="'+k+'">Salvar e fechar</button></div></div>'}
 function rtp(b){var x=S.rt;if(!x||x.id!==b.id)return"";
  var h='<div class="cx"><b>Voltar depois</b><p>Reagenda esta visita como retorno. O horário atual fica livre.</p><label>Dia do retorno</label><input type="date" data-rt="day" min="'+DIAS[0].iso+'" value="'+x.day+'">';
  if(x.day){h+='<label>Horário</label><div class="slots">';HORAS.forEach(function(t){var k=x.day+" "+t;h+='<button class="slot'+(x.slot===t?" on":"")+'" data-act="rts" data-v="'+t+'"'+(taken(k)&&b.key!==k?" disabled":"")+">"+t+"</button>"});h+="</div>"}
@@ -236,7 +239,26 @@ async function carregarAgenda(){
    obs:x.obs||"",
    q:x.qtd||1,
    val:Number(x.valor||0),
-   nw:x.status==="novo"
+   nw:x.status==="novo"&&!x.retorno,
+   note:x.anotacao||"",
+   ret:x.retorno?1:0,
+   rn:x.retorno_motivo||"",
+   hist:Array.isArray(x.historico)?x.historico:[]
+  }});
+ }
+}
+async function carregarRetornos(){
+ if(!S.user)return;
+ var res=await sb.from("clientes_retorno").select("*").eq("tecnico_id",S.user.id);
+ if(res.data){
+  S.cl=res.data.map(function(x){return{
+   id:x.id,
+   name:x.cliente_nome,
+   tel:x.whatsapp||"",
+   svc:x.servico,
+   ago:diasDesde(x.ultimo_atendimento),
+   iv:x.intervalo_dias||180,
+   note:x.anotacao||""
   }});
  }
 }
@@ -254,7 +276,7 @@ async function carregarPerfil(user){
    if(res.data.config.co)CFG.co=res.data.config.co;
    if(res.data.config.serv)Object.assign(SERV,res.data.config.serv);
   }
-  await carregarAgenda();
+  await Promise.all([carregarAgenda(),carregarRetornos()]);
   S.ob=0;S.ok=0;
  }else{
   S.ob=1;S.ok=0;S.slug="";
@@ -306,7 +328,7 @@ async function entrar(){
 }
 async function sair(){
  await sb.auth.signOut();
- S.user=null;S.slug="";S.lg=1;S.ob=1;S.ok=0;S.lp="";S.le="";S.bk=[];S.pf={nome:"",cel:"",end:""};
+ S.user=null;S.slug="";S.lg=1;S.ob=1;S.ok=0;S.lp="";S.le="";S.bk=[];S.cl=[];S.pf={nome:"",cel:"",end:""};
  render();window.scrollTo(0,0);
 }
 document.addEventListener("click",async function(e){
@@ -326,18 +348,33 @@ document.addEventListener("click",async function(e){
  if(a==="svdq"){S.sdel=v;render();return}
  if(a==="svdx"){S.sdel=null;render();return}
  if(a==="svdel"){var cc=S.ccat;if(CFG.sv[v]&&CFG.sv[v].cat){delete SERV[v];delete CFG.sv[v]}else{CATS[cc].s=CATS[cc].s.filter(function(x){return x!==v});if(!Object.keys(CATS).some(function(z){return CATS[z].s.indexOf(v)>-1})){delete SERV[v];delete CFG.sv[v]}}if(S.m.svc===v)S.m.svc="";S.sdel=null;render();toast("Serviço excluído.");return}
- if(a==="served"){var sc=S.cl.filter(function(x){return x.id===+v})[0];if(!sc)return;var s0=sk(sc.svc);if(s0&&CFG.sv[s0].rv)sc.iv=CFG.sv[s0].rv;sc.ago=0;render();toast(sc.name+" atendido. Volta para o fim da lista: próximo retorno em "+rvl(sc.iv)+".");return}
+ if(a==="served"){
+  var sc=S.cl.filter(function(x){return x.id===+v})[0];if(!sc)return;
+  var s0=sk(sc.svc),novoIv=(s0&&CFG.sv[s0].rv)?CFG.sv[s0].rv:sc.iv,hoje=iso(new Date());
+  var up=await sb.from("clientes_retorno").update({ultimo_atendimento:hoje,intervalo_dias:novoIv}).eq("id",sc.id);
+  if(up.error){toast("Erro ao atualizar: "+up.error.message);return}
+  sc.iv=novoIv;sc.ago=0;render();toast(sc.name+" atendido. Volta para o fim da lista: próximo retorno em "+rvl(sc.iv)+".");return}
  if(a==="rv"){CFG.sv[b.dataset.k].rv=+v;render();return}
  if(a==="nt"){S.nt=S.nt===v?null:v;render();return}
+ if(a==="ntsave"){
+  var o=nobj(v),idNum=+v.slice(1),tbl=v[0]==="b"?"agendamentos":"clientes_retorno";
+  S.nt=null;render();
+  if(o){
+   var rnt=await sb.from(tbl).update({anotacao:o.note||""}).eq("id",idNum);
+   if(rnt.error)toast("Erro ao salvar anotação: "+rnt.error.message);
+   else toast("Anotação salva!");
+  }
+  return}
  if(a==="rt"){S.rt={id:+v,day:"",slot:"",why:"",err:""};S.cx=null;render();return}
  if(a==="rts"){S.rt.slot=v;S.rt.err="";render();return}
  if(a==="rtw"){S.rt.why=(S.rt.why?S.rt.why+". ":"")+v;render();return}
  if(a==="rtx"){S.rt=null;render();return}
  if(a==="rtok"){var rb=S.bk.filter(function(x){return x.id===S.rt.id})[0],r=S.rt;if(!rb)return;if(!r.day||!r.slot){r.err="Escolha o dia e o horário do retorno.";render();return}
   var novaDh=r.day+" "+r.slot;
-  await sb.from("agendamentos").update({data_hora:novaDh,obs:r.why||rb.obs}).eq("id",rb.id);
-  (rb.hist=rb.hist||[]).push("Visita em "+dlabel(rb.key.slice(0,10))+" às "+rb.key.slice(11)+(r.why?": "+r.why:""));
-  rb.key=novaDh;rb.ret=1;rb.rn=r.why;rb.nw=false;S.rt=null;render();toast("Retorno marcado para "+dlabel(r.day)+" às "+r.slot+". Veja em Retornos.");return}
+  var novoHist=(rb.hist||[]).concat(["Visita em "+dlabel(rb.key.slice(0,10))+" às "+rb.key.slice(11)+(r.why?": "+r.why:"")]);
+  var urt=await sb.from("agendamentos").update({data_hora:novaDh,retorno:true,retorno_motivo:r.why||"",historico:novoHist,status:"retorno"}).eq("id",rb.id);
+  if(urt.error){r.err="Erro ao salvar retorno: "+urt.error.message;render();return}
+  rb.hist=novoHist;rb.key=novaDh;rb.ret=1;rb.rn=r.why;rb.nw=false;S.rt=null;render();toast("Retorno marcado para "+dlabel(r.day)+" às "+r.slot+". Veja em Retornos.");return}
  if(a==="ms"){var kk=b.dataset.k;S.m[kk]=v;if(kk==="day")S.m.slot="";if(kk==="svc"){S.m.q=1;S.m.val=null}S.m.err="";render();return}
  if(a==="mq"){S.m.q=Math.max(1,Math.min(20,S.m.q+ +v));S.m.val=null;render();return}
  if(a==="msave"){var m=S.m;if(!m.name.trim()||!m.addr.trim()||!m.slot||!SERV[m.svc]){m.err="Preencha nome, serviço, endereço, dia e horário.";render();return}
@@ -357,7 +394,7 @@ document.addEventListener("click",async function(e){
   }).select().single();
   S.saving=0;
   if(ins.error){m.err="Erro ao salvar: "+ins.error.message;render();return}
-  S.bk.push({id:ins.data.id,key:ins.data.data_hora,name:ins.data.cliente_nome,tel:ins.data.whatsapp||"",svc:ins.data.servico,who:ins.data.who,addr:ins.data.endereco,obs:ins.data.obs||"",q:ins.data.qtd,val:Number(ins.data.valor||0),nw:true});
+  S.bk.push({id:ins.data.id,key:ins.data.data_hora,name:ins.data.cliente_nome,tel:ins.data.whatsapp||"",svc:ins.data.servico,who:ins.data.who,addr:ins.data.endereco,obs:ins.data.obs||"",q:ins.data.qtd,val:Number(ins.data.valor||0),nw:true,note:"",ret:0,rn:"",hist:[]});
   S.m=newM();S.tab="agenda";render();toast("Agendamento salvo na sua agenda.");return}
  if(a==="cx"){S.cx={id:+v,r:"",n:0};render();return}
  if(a==="cxr"){S.cx.r=v;S.cx.n=0;render();return}
@@ -368,15 +405,36 @@ document.addEventListener("click",async function(e){
   S.bk=S.bk.filter(function(x){return x.id!==cb.id});S.sel=S.sel.filter(function(x){return x!==cb.id});S.cx=null;render();toast("Visita cancelada. O horário ficou livre para outros clientes.");return}
  if(a==="svon"){CFG.sv[v].on=CFG.sv[v].on?0:1;render();return}
  if(a==="dw"){var n=+v,z=CFG.dw.indexOf(n);z>-1?CFG.dw.splice(z,1):CFG.dw.push(n);render();return}
- if(a==="tab"){S.tab=v;if(v==="agenda")await carregarAgenda();render();return}
+ if(a==="tab"){S.tab=v;if(v==="agenda"||v==="lemb")await Promise.all([carregarAgenda(),carregarRetornos()]);render();return}
  if(a==="sel"){var id=+v,j=S.sel.indexOf(id);j>-1?S.sel.splice(j,1):S.sel.push(id);render();return}
- if(a==="done"){var id2=+v,bb=S.bk.filter(function(x){return x.id===id2})[0];
-  await sb.from("agendamentos").delete().eq("id",id2);
+ if(a==="done"){
+  var id2=+v,bb=S.bk.filter(function(x){return x.id===id2})[0];if(!bb)return;
+  var del=await sb.from("agendamentos").delete().eq("id",id2);
+  if(del.error){toast("Erro ao concluir: "+del.error.message);return}
   S.bk=S.bk.filter(function(x){return x.id!==id2});S.sel=S.sel.filter(function(x){return x!==id2});
   var sk0=sk(bb.svc),iv=sk0?CFG.sv[sk0].rv:0;
-  if(iv){S.cl.push({id:S.nid++,name:bb.name,svc:bb.svc,ago:0,iv:iv,note:bb.note});toast(bb.name+" salvo(a) nos lembretes: retorno em "+rvl(iv))}else toast("Serviço concluído");
+  if(iv){
+   var insR=await sb.from("clientes_retorno").insert({
+    tecnico_id:S.user.id,
+    cliente_nome:bb.name,
+    whatsapp:bb.tel||"",
+    servico:bb.svc,
+    ultimo_atendimento:iso(new Date()),
+    intervalo_dias:iv,
+    anotacao:bb.note||""
+   }).select().single();
+   if(!insR.error&&insR.data){
+    S.cl.push({id:insR.data.id,name:insR.data.cliente_nome,tel:insR.data.whatsapp||"",svc:insR.data.servico,ago:0,iv:insR.data.intervalo_dias,note:insR.data.anotacao||""});
+    toast(bb.name+" salvo(a) nos lembretes: retorno em "+rvl(iv));
+   }else toast("Serviço concluído");
+  }else toast("Serviço concluído");
   render();return}
- if(a==="snooze"){S.cl.forEach(function(c){if(c.id===+v)c.iv+=30});render();toast("Prazo adiado em 30 dias")}
+ if(a==="snooze"){
+  var sn=S.cl.filter(function(x){return x.id===+v})[0];if(!sn)return;
+  var novoPrazo=sn.iv+30;
+  var usn=await sb.from("clientes_retorno").update({intervalo_dias:novoPrazo}).eq("id",sn.id);
+  if(usn.error){toast("Erro ao adiar: "+usn.error.message);return}
+  sn.iv=novoPrazo;render();toast("Prazo adiado em 30 dias")}
 });
 document.addEventListener("input",function(e){var t=e.target.dataset;if(t.lg){S[t.lg]=e.target.value;return}if(t.pf){S.pf[t.pf]=e.target.value;if(t.pf==="cel")CFG.tel=e.target.value;return}if(t.tel){CFG.tel=e.target.value;return}if(t.hr){var q9=t.hr.split(":");CFG.hr[q9[0]][+q9[1]]=e.target.value;return}if(t.nsv){S.nsv=e.target.value;return}if(t.rt){S.rt[t.rt]=e.target.value;if(t.rt==="day"){S.rt.slot="";render()}return}if(t.ntk){var o=nobj(t.ntk);if(o)o.note=e.target.value;return}if(t.m){S.m[t.m]=e.target.value;return}if(t.pk){CFG.sv[t.pk].p=+e.target.value.replace(/\D/g,"")||0;return}if(t.uk){CFG.sv[t.uk].u=e.target.checked?1:0;return}});
 document.addEventListener("keydown",function(e){if(e.key==="Enter"&&S.lg){entrar()}});
