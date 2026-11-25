@@ -190,7 +190,9 @@ function cfg3(){var cc=S.ccat,h=(S.ob?"":seg3()+cardLink()+MEUS())+'<h2 style="f
  return h+'<div class="bar"><button class="btn" data-act="savecfg"'+(S.saving?" disabled":"")+'>'+(S.saving?"Salvando...":"Salvar alterações")+'</button></div>'}
 var RVO=[[0,"Não avisar"],[30,"30 dias"],[90,"3 meses"],[180,"6 meses"],[240,"8 meses"],[365,"1 ano"]],RV={hig:180,gas:365};for(var k0 in CFG.sv)CFG.sv[k0].rv=RV[k0]||0;
 function rvl(d){for(var i=0;i<RVO.length;i++)if(RVO[i][0]===d)return RVO[i][1];return d+" dias"}
-function sk(n){for(var k in SERV)if(SERV[k][0]===n)return k;return""}
+function nrm(s){return String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim()}
+function sk(n){var a=nrm(n);if(!a)return"";for(var k in SERV)if(nrm(SERV[k][0])===a)return k;for(var k2 in SERV){var b=nrm(SERV[k2][0]);if(b&&(a.indexOf(b)===0||b.indexOf(a)===0))return k2}return""}
+function rvDe(k){if(!k||!CFG.sv[k])return 0;var r=CFG.sv[k].rv;if(r===undefined||r===null)r=(typeof RV!=="undefined"&&RV[k])||0;return +r||0}
 function nobj(k){var id=+k.slice(1);return(k[0]==="b"?S.bk:S.cl).filter(function(x){return x.id===id})[0]}
 function notep(k,o){if(S.nt!==k)return o.note?'<p class="nt">📝 '+esc(o.note)+"</p>":"";
  return '<div class="cx"><b>Anotações do técnico</b><p>Só você vê. Ex.: levar escada maior, chave com o porteiro.</p><textarea data-ntk="'+k+'" placeholder="Escreva aqui...">'+esc(o.note||"")+'</textarea><div class="mini"><button data-act="ntsave" data-v="'+k+'">Salvar e fechar</button></div></div>'}
@@ -304,7 +306,7 @@ async function carregarPerfil(user){
   S.pf={nome:res.data.nome||"",cel:res.data.whatsapp||"",end:res.data.endereco||""};
   CFG.tel=res.data.whatsapp||"";
   if(res.data.config){
-   if(res.data.config.sv)CFG.sv=res.data.config.sv;
+   if(res.data.config.sv){CFG.sv=res.data.config.sv;for(var kr in CFG.sv)if(CFG.sv[kr]&&(CFG.sv[kr].rv===undefined||CFG.sv[kr].rv===null))CFG.sv[kr].rv=RV[kr]||0;}
    if(res.data.config.dw)CFG.dw=res.data.config.dw;
    if(res.data.config.hr)CFG.hr=res.data.config.hr;
    if(res.data.config.co)CFG.co=res.data.config.co;
@@ -448,12 +450,9 @@ document.addEventListener("click",async function(e){
  if(a==="sel"){var id=+v,j=S.sel.indexOf(id);j>-1?S.sel.splice(j,1):S.sel.push(id);render();return}
  if(a==="done"){
   var id2=+v,bb=S.bk.filter(function(x){return x.id===id2})[0];if(!bb)return;
-  var del=await sb.from("agendamentos").delete().eq("id",id2);
-  if(del.error){toast("Erro ao concluir: "+del.error.message);return}
-  S.bk=S.bk.filter(function(x){return x.id!==id2});S.sel=S.sel.filter(function(x){return x!==id2});
-  var sk0=sk(bb.svc),iv=(sk0&&CFG.sv[sk0])?CFG.sv[sk0].rv:0;
+  var sk0=sk(bb.svc),iv=rvDe(sk0),insR=null;
   if(iv){
-   var insR=await sb.from("clientes_retorno").insert({
+   insR=await sb.from("clientes_retorno").insert({
     tecnico_id:S.user.id,
     cliente_nome:bb.name,
     whatsapp:bb.tel||"",
@@ -462,10 +461,14 @@ document.addEventListener("click",async function(e){
     intervalo_dias:iv,
     anotacao:bb.note||""
    }).select().single();
-   if(!insR.error&&insR.data){
-    S.cl.push({id:insR.data.id,name:insR.data.cliente_nome,tel:insR.data.whatsapp||"",svc:insR.data.servico,ago:0,iv:insR.data.intervalo_dias,note:insR.data.anotacao||""});
-    toast(bb.name+" salvo(a) nos lembretes: retorno em "+rvl(iv));
-   }else toast("Serviço concluído");
+   if(insR.error||!insR.data){toast("Erro ao criar o retorno: "+(insR.error?insR.error.message:"sem resposta")+". O serviço não foi concluído, tente de novo.");return}
+  }
+  var del=await sb.from("agendamentos").delete().eq("id",id2);
+  if(del.error){toast("Erro ao concluir: "+del.error.message);return}
+  S.bk=S.bk.filter(function(x){return x.id!==id2});S.sel=S.sel.filter(function(x){return x!==id2});
+  if(insR&&insR.data){
+   S.cl.push({id:insR.data.id,name:insR.data.cliente_nome,tel:insR.data.whatsapp||"",svc:insR.data.servico,ago:0,iv:insR.data.intervalo_dias,note:insR.data.anotacao||""});
+   toast(bb.name+" salvo(a) nos lembretes: retorno em "+rvl(iv));
   }else toast("Serviço concluído");
   render();return}
  if(a==="snooze"){
@@ -481,3 +484,4 @@ sb.auth.getSession().then(function(r){if(r.data&&r.data.session){carregarPerfil(
 </script>
 </body>
 </html>
+ 
